@@ -1,0 +1,82 @@
+package delfi;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+//import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+public class DTest {
+    private static RemoteWebDriver driver;
+
+
+    private static void openBrowser() {
+      /* for (int i = 0; i < 2; i++) {
+           if (i == 0) {
+                System.setProperty("webdriver.gecko.driver", "C://geckodriver.exe");
+                driver = new FirefoxDriver();
+                driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+                driver.get("https://rus.delfi.lv/");
+                System.out.println("Open Firefox browser");
+            } else if (i == 1) {*/
+
+        System.setProperty("webdriver.chrome.driver", "C://browserdriver/chromedriver.exe");
+        driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        driver.get("https://rus.delfi.lv/");
+        // driver.findElement(By.id("cookiePolicyAccept")).click();
+        //System.out.println("Open Chrome browser and close cookie");
+        //      }
+
+        // }
+
+    }
+
+    private static void clickOnFood() {
+        driver.findElement(By.cssSelector("a[href*='eda']")).click();
+        System.out.println("Open Delfi Food page");
+    }
+
+    private static String getTitleOfRecipe() {
+        WebElement content = driver.findElement(By.cssSelector("div[class='col-content pull-left']"));
+        WebElement recipe = content.findElement(By.cssSelector("a[href*='recepty/']"));
+        recipe.click();
+        String recipeTitle = driver.findElement(By.cssSelector("h1[class='article-title'")).getText();
+        System.out.println("Click on recipe "+recipeTitle);
+        return recipeTitle;
+    }
+
+    private static void checkAllIngredients(String recipeTitle) {
+        List<WebElement> items = driver.findElements(By.cssSelector("a[class='ing-title']"));
+        List<String> links = new ArrayList<>();
+        for (WebElement item : items) {
+            links.add(item.getAttribute("href"));
+        }
+
+        for (int i = 0; i < items.size(); i++) {
+            String link = links.get(i);
+            if (link.contains("ingredienty")) {
+                driver.navigate().to(links.get(i));
+                System.out.println("Open link: "+link);
+                WebElement ingredientContent = driver.findElement(By.cssSelector("section[class='row article-collection']"));
+                WebElement elem = ingredientContent.findElement(By.linkText(recipeTitle));
+                assert elem != null;
+                System.out.println("Recipe title on the page: " + recipeTitle);
+                driver.navigate().back();
+                System.out.println("Go back to ingredienty ");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        openBrowser();
+        clickOnFood();
+        String recipeName = getTitleOfRecipe();
+        checkAllIngredients(recipeName);
+        driver.close();
+
+    }
+}
